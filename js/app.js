@@ -1,38 +1,107 @@
 // Click a button or object to earn points so that I can increase my score.
 // See my current score during the game so that I know how well I am doing.
 
-// See a countdown timer so that I know how much time is left. setInterval()
+// See a countdown timer so that I know how much time is left. setInterval();
 
 // Variables
 let score = 0;
-let time = 60;
-// HMTL DOM
+let timeLeft = 5;
+let gameStarted = false;
+let gameEnded = false;
+let interval = null;
+
+// HTML DOM
 const button1 = document.getElementById('button1');
+const button2 = document.getElementById('button2');
+const button3 = document.getElementById('button3');
 const scoreDisplay = document.getElementById('scoreDisplay');
-const timeDisplay = document.getElementById('timeDisplay');
-// UI Functions
+const timerDisplay = document.getElementById('timerDisplay');
+const label1 = document.getElementById('label1');
+const input1 = document.getElementById('name');
+const message = document.getElementById('message');
+const scoreboard = document.getElementById('scoreboard');
+
+// UI Functions & Events
 button1.addEventListener('click', () => {
-  increaseScore()
+  if (!gameEnded) {
+    increaseScore();
+  }
+
+  if (!gameStarted) {
+    startGame();
+  }
 })
 
-//Functions
+button2.addEventListener('click', () => {
+  submitHighScore();
+})
+
+input1.style.display = 'none';
+label1.style.display = 'none';
+button2.style.display = 'none';
+
+button3.addEventListener('click', () => {
+  getScoreboard()
+})
+
+// Functions
 function increaseScore() {
   score++;
   scoreDisplay.innerText = score;
 }
 
+function countdown() {
+  timeLeft--;
+  timerDisplay.innerText = timeLeft;
 
-function startTimer() {
-  const timer = setInterval(() => {
-    time--;
-    timeDisplay.innerText = "Time left: " + time;
-
-    if (time <= 0) {
-      clearInterval(timer);
-      timeDisplay.innerText = "Game Over";
-    }
-  }, 1000);
+  if (timeLeft <= 0) {
+    timerDisplay.innerText = 0;
+    scoreDisplay.innerText = "Final score: " + score;
+    endGame();
+  }
 }
 
-// Function calls
-startTimer()
+function startGame() {
+  interval = setInterval(countdown,  1000);
+  gameStarted = true;
+}
+
+function endGame() {
+  gameEnded = true;
+  clearInterval(interval);
+  button1.style.display = 'none';
+  input1.style.display = 'block';
+  label1.style.display = 'block';
+  button2.style.display = 'block';
+}
+
+async function submitHighScore() {
+  const response = await fetch("https://hooks.zapier.com/hooks/catch/8338993/ujs9jj9/", {
+    method: "POST",
+    body: JSON.stringify({ name: input1.value, score: score }),
+  });
+  if (response.ok) {
+    message.innerText = "Your score saved successfully!";
+  } else {
+    message.innerText = "Failed to save score!";
+  }
+
+  console.log(response);
+}
+
+
+function getScoreboard () {
+  fetch("https://script.google.com/macros/s/AKfycbys5aEPMvNCutyhNYYCcQcCjzsi2UtqNspmKyCH-AicJxJbCJMrAoT0LUaYaXhTWA8n/exec")
+    .then(response => response.json())
+    .then(data => {
+      data.sort((a, b) => b.score - a.score);
+      scoreboard.innerHTML = "Name - Score"
+
+      data.forEach((player, index) => {
+        const p = document.createElement('p');
+        p.innerText = `${index + 1}. ${player.name} - ${player.score}`;
+        scoreboard.appendChild(p);
+      });
+    });
+}
+
