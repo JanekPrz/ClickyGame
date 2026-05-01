@@ -5,7 +5,7 @@
 
 // Variables
 let score = 0;
-let timeLeft = 5;
+let timeLeft = 60;
 let gameStarted = false;
 let gameEnded = false;
 let interval = null;
@@ -47,7 +47,7 @@ button3.addEventListener('click', () => {
 // Functions
 function increaseScore() {
   score++;
-  scoreDisplay.innerText = score;
+  scoreDisplay.innerText = "Score: " + score;
 }
 
 function countdown() {
